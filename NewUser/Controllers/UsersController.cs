@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using NewUser.Models;  // Adjust namespace according to your project structure
@@ -33,6 +33,30 @@ namespace NewUser.Controllers
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
+
+        [HttpPost("Login")]
+        public async Task<ActionResult<User>> Login([FromBody] LoginDto loginDto)
+        {
+            // Find the user by email
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.email == loginDto.email);
+
+            if (user == null)
+            {
+                return Unauthorized("Invalid email or password.");
+            }
+
+            // Verify the password
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginDto.password, user.password);
+
+            if (!isPasswordValid)
+            {
+                return Unauthorized("Invalid email or password.");
+            }
+
+            // Generate a token or return user information (for demonstration, returning user info)
+            return Ok(user);
+        }
+
 
         // GET: api/Users/5
         [HttpGet("{id}")]
